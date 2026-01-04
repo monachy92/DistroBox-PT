@@ -1,6 +1,3 @@
- ============================================
-# FILE: README.md
-# ============================================
 # Cisco Packet Tracer on Fedora
 
 A simple automated setup script for running **Cisco Packet Tracer 9.0** on Fedora (and other immutable Linux distributions) using Distrobox and an Ubuntu 22.04 container.
