@@ -132,6 +132,9 @@ rm ~/.local/share/applications/packettracer.desktop
 # Update desktop database
 update-desktop-database ~/.local/share/applications
 ```
+---
+## Disclaimer
+This project is an independent community effort and is not affiliated with, sponsored by, or endorsed by Cisco Systems, Inc. Cisco Packet Tracer is a proprietary software owned by Cisco. This script does not distribute the Packet Tracer binaries; it only provides a method for users to install their own legally obtained copies on Fedora-based systems.
 
 
 
