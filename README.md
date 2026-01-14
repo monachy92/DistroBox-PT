@@ -7,12 +7,18 @@ A secure, containerized installation script for Cisco Packet Tracer on Linux usi
 
 ## 🎯 Why This Exists
 
-Cisco Packet Tracer is traditionally installed directly on your system, which:
-- Requires extensive system dependencies
-- Can clutter your host OS
-- Poses potential security risks from proprietary software
+When I switched from Windows to Fedora, I needed Cisco Packet Tracer for my CCNA studies. Problem: Cisco only provides a .deb installer (for Debian/Ubuntu), which doesn't work on Fedora's RPM-based system.
 
-This script solves these issues by running Packet Tracer in an **isolated Ubuntu 22.04 container** with hardened security settings.
+I could've tried converting it with alien or other tools, but that's unreliable. I could've dual-booted Ubuntu or run a full VM, but that's overkill. So I built this script instead.
+
+**The solution:** Run Packet Tracer in an isolated Ubuntu 22.04 container using Distrobox. The .deb installer works perfectly, and you get these benefits:
+- Works on any Linux distro (Fedora, Arch, openSUSE, etc.)
+- No system clutter from extensive dependencies
+- Security through isolation of proprietary software
+- Clean uninstall - just delete the container
+- Native desktop integration - launches like a local app
+
+Now I use this approach for any .deb-only application on Fedora.
 
 ## ✨ Features
 
