@@ -1,6 +1,3 @@
-# ============================================
-# FILE: setup.sh
-# ============================================
 #!/bin/bash
 set -e
 
@@ -12,28 +9,34 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}Cisco Packet Tracer Setup for Fedora${NC}"
+echo -e "${BLUE}Hardened Cisco Packet Tracer Setup${NC}"
 echo -e "${BLUE}========================================${NC}"
-echo ""
 
-# 1. Create the Distrobox
-echo -e "${GREEN}[1/6] Creating the Ubuntu container...${NC}"
-distrobox-create --name PTBox --image ubuntu:22.04 --yes
+# 1. Create a secure, isolated home for the container
+echo -e "${GREEN}[1/6] Creating isolated home and container...${NC}"
+mkdir -p ~/.pt_container_home
+distrobox-create --name PTBox --image ubuntu:22.04 --home ~/.pt_container_home --yes
 
 # 2. Run setup commands inside the box
-echo -e "${GREEN}[2/6] Installing dependencies inside the container...${NC}"
+echo -e "${GREEN}[2/6] Installing dependencies...${NC}"
 distrobox-enter -n PTBox -- sh -c '
 sudo apt update && sudo apt install -y libgl1-mesa-glx libpulse0 libnss3 libxcb-xinerama0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-util1 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3 libxcb-randr0 libxcb-xtest0 libglib2.0-0 xdg-utils libfuse2 libopengl0 dbus-x11
 sudo ln -s /usr/bin/xdg-open /usr/bin/google-chrome
 sudo ln -s /usr/bin/xdg-open /usr/bin/firefox
 '
 
-# 3. Create the launcher script on the host
-echo -e "${GREEN}[3/6] Creating the launcher script...${NC}"
+# 3. Create a SAFER launcher script with auto-cleanup
+echo -e "${GREEN}[3/6] Creating hardened launcher script...${NC}"
 cat <<EOF > ~/launch_pt.sh
 #!/bin/bash
+# Open graphics access
 xhost +local:docker > /dev/null
+
+# Run the app
 distrobox-enter -n PTBox -- sh -c "cd ~/.pt_app && ./AppRun --no-sandbox"
+
+# AUTOMATIC CLEANUP: Close graphics access when app exits
+xhost -local:docker > /dev/null
 EOF
 chmod +x ~/launch_pt.sh
 
@@ -42,9 +45,9 @@ echo -e "${GREEN}[4/6] Creating the desktop menu icon...${NC}"
 mkdir -p ~/.local/share/applications
 cat <<EOF > ~/.local/share/applications/packettracer.desktop
 [Desktop Entry]
-Name=Cisco Packet Tracer
+Name=Cisco Packet Tracer (Secure)
 Exec=/home/$USER/launch_pt.sh
-Icon=/home/$USER/.pt_app/usr/share/icons/hicolor/scalable/apps/pt7.svg
+Icon=network-workgroup
 Terminal=false
 Type=Application
 Categories=Education;Network;
@@ -52,11 +55,8 @@ EOF
 update-desktop-database ~/.local/share/applications
 
 echo -e "${GREEN}[5/6] Container setup complete!${NC}"
-echo ""
 
 # 5. Prompt for .deb file installation
-echo -e "${YELLOW}Now we need to install the Packet Tracer .deb file.${NC}"
-echo -e "${YELLOW}Please make sure you have downloaded it from Cisco NetAcad.${NC}"
 echo ""
 read -p "Do you have the .deb file ready? (y/n): " has_deb
 
@@ -74,41 +74,8 @@ if [[ $has_deb =~ ^[Yy]$ ]]; then
         mv squashfs-root/* ~/.pt_app/
         rm -rf squashfs-root
         '
-        
-        echo ""
-        echo -e "${GREEN}========================================${NC}"
         echo -e "${GREEN}Installation Complete!${NC}"
-        echo -e "${GREEN}========================================${NC}"
-        echo ""
-        echo -e "${BLUE}You can now launch Packet Tracer from:${NC}"
-        echo -e "  • Your application menu"
-        echo -e "  • Running: ~/launch_pt.sh"
-        echo ""
     else
         echo -e "${RED}Error: File not found: $deb_path${NC}"
-        echo -e "${YELLOW}Please run the manual steps below.${NC}"
-        has_deb="n"
     fi
-fi
-
-if [[ ! $has_deb =~ ^[Yy]$ ]]; then
-    echo ""
-    echo -e "${YELLOW}========================================${NC}"
-    echo -e "${YELLOW}Manual Installation Steps${NC}"
-    echo -e "${YELLOW}========================================${NC}"
-    echo ""
-    echo -e "${BLUE}1. Enter the container:${NC}"
-    echo -e "   distrobox-enter -n PTBox"
-    echo ""
-    echo -e "${BLUE}2. Install the .deb file:${NC}"
-    echo -e "   sudo apt install ./CiscoPacketTracer_900_Ubuntu_64bit.deb"
-    echo ""
-    echo -e "${BLUE}3. Extract the AppImage:${NC}"
-    echo -e "   mkdir -p ~/.pt_app"
-    echo -e "   /opt/pt/packettracer.AppImage --appimage-extract"
-    echo -e "   mv squashfs-root/* ~/.pt_app/"
-    echo ""
-    echo -e "${BLUE}4. Launch Packet Tracer:${NC}"
-    echo -e "   ~/launch_pt.sh"
-    echo ""
 fi
